@@ -22,8 +22,6 @@ const drawerWidth = 350;
 const collapsedWidth = 140;
 
 const DashboardSidebar: React.FC = () => {
-
-    // get the role by loged user
     const { role } = useAuthStore();
     const currentUserRole = role;
 
@@ -48,6 +46,18 @@ const DashboardSidebar: React.FC = () => {
         route.roles.includes(currentUserRole)
     );
 
+
+
+    // Color variables
+    const drawerBgGradient = theme.palette.sidebar.gradient;
+    const drawerContentBg = theme.palette.sidebar.panelBg;
+    const selectedTextColor = theme.palette.primary.main;
+    const selectedBgColor = theme.palette.primary.light;
+    const hoverBgColor = theme.palette.primary.light;
+    const defaultTextColor = theme.palette.text.primary;
+    const secondaryTextColor = theme.palette.text.secondary;
+    const whiteTextColor = "#fff";
+
     return (
         <Drawer
             variant="permanent"
@@ -58,7 +68,7 @@ const DashboardSidebar: React.FC = () => {
                     width: isCollapsed ? collapsedWidth : drawerWidth,
                     transition: "width 0.3s",
                     boxSizing: "border-box",
-                    background: "radial-gradient(circle, #ffffff, #1a73e8)",
+                    background: drawerBgGradient,
                     overflow: "hidden",
                 },
             }}
@@ -67,22 +77,21 @@ const DashboardSidebar: React.FC = () => {
                 sx={{
                     justifyContent: isCollapsed ? "center" : "space-between",
                     minHeight: "60px !important",
-                    backgroundColor: "#fffff",
                     marginTop: 2,
                     px: 6,
                     borderRadius: 2,
-
+                    backgroundColor: drawerBgGradient,
                 }}
             >
                 {!isCollapsed && (
                     <Box display="flex" alignItems="center" gap={1}>
                         <img src={Logo} alt="Logo" width={32} height={32} />
-                        <Typography variant="h6" noWrap sx={{ color: "#fff" }}>
+                        <Typography variant="h6" noWrap sx={{ color: whiteTextColor }}>
                             DMMS
                         </Typography>
                     </Box>
                 )}
-                <IconButton onClick={toggleDrawer} sx={{ color: "#fff" }}>
+                <IconButton onClick={toggleDrawer} sx={{ color: whiteTextColor }}>
                     {isCollapsed ? <MenuIcon /> : <MenuOpenIcon />}
                 </IconButton>
             </Toolbar>
@@ -92,7 +101,7 @@ const DashboardSidebar: React.FC = () => {
                     sx={{
                         overflowY: "auto",
                         height: "calc(100vh - 64px - 32px)",
-                        background: "linear-gradient(to top, whitesmoke, #ffffff)",
+                        background: drawerContentBg,
                         borderRadius: 2,
                         p: 1,
                         boxShadow: "inset 0 0 4px rgba(0,0,0,0.05)",
@@ -102,7 +111,7 @@ const DashboardSidebar: React.FC = () => {
                         {!isCollapsed && (
                             <Typography
                                 variant="caption"
-                                sx={{ pl: 2, pb: 1, color: "text.secondary", fontWeight: 600 }}
+                                sx={{ pl: 2, pb: 1, color: secondaryTextColor, fontWeight: 600 }}
                             >
                                 MAIN MENU
                             </Typography>
@@ -128,19 +137,22 @@ const DashboardSidebar: React.FC = () => {
                                                 mx: 1,
                                                 mb: 1,
                                                 borderRadius: 2,
-                                                color: selectedPage === item.text ? "primary.main" : "text.primary",
-                                                backgroundColor:
-                                                    selectedPage === item.text ? "primary.light" : "transparent",
+                                                color: selectedPage === item.text
+                                                    ? selectedTextColor
+                                                    : defaultTextColor,
+                                                backgroundColor: selectedPage === item.text
+                                                    ? selectedBgColor
+                                                    : "transparent",
                                                 "&:hover": {
-                                                    backgroundColor: "primary.light",
+                                                    backgroundColor: hoverBgColor,
                                                 },
                                             }}
                                         >
                                             <ListItemIcon
                                                 sx={{
                                                     color: selectedPage === item.text
-                                                        ? "primary.main"
-                                                        : "text.secondary",
+                                                        ? selectedTextColor
+                                                        : secondaryTextColor,
                                                     minWidth: 36,
                                                     justifyContent: "center",
                                                 }}
@@ -175,22 +187,20 @@ const DashboardSidebar: React.FC = () => {
                                                                 mx: 1,
                                                                 mb: 1,
                                                                 borderRadius: 2,
-                                                                backgroundColor:
-                                                                    selectedPage === subItem.text
-                                                                        ? "primary.light"
-                                                                        : "transparent",
+                                                                backgroundColor: selectedPage === subItem.text
+                                                                    ? selectedBgColor
+                                                                    : "transparent",
                                                                 "&:hover": {
-                                                                    backgroundColor: "primary.light",
+                                                                    backgroundColor: hoverBgColor,
                                                                 },
                                                             }}
                                                         >
                                                             <ListItemText
                                                                 primary={subItem.text}
                                                                 sx={{
-                                                                    color:
-                                                                        selectedPage === subItem.text
-                                                                            ? "primary.main"
-                                                                            : "text.primary",
+                                                                    color: selectedPage === subItem.text
+                                                                        ? selectedTextColor
+                                                                        : defaultTextColor,
                                                                 }}
                                                             />
                                                         </ListItemButton>
@@ -207,5 +217,6 @@ const DashboardSidebar: React.FC = () => {
         </Drawer>
     );
 };
+
 
 export default DashboardSidebar;

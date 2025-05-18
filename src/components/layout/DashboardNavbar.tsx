@@ -8,7 +8,7 @@ import {
     Button,
     IconButton,
     Menu,
-    MenuItem,
+    MenuItem, useTheme,
 } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import {useAuthStore} from "../../store/useAuthStore.ts";
@@ -26,9 +26,12 @@ const DashboardNavbar: React.FC = () => {
     const handleClose = () => {
         setAnchorEl(null);
     };
+    const theme = useTheme();
+    // const navabrBgGradient = "radial-gradient(circle, #1a73e8, #1a73e8)";
+    const navabrBgGradient = theme.palette.bd_navbar.panelBg;
 
     return (
-        <AppBar position="static" sx={{background: "radial-gradient(circle, #1a73e8, #1a73e8)",borderRadius: 2,}}>
+        <AppBar position="static" sx={{background: navabrBgGradient,borderRadius: 2,}}>
             <Toolbar>
                 <Typography variant="h6">Dashboard</Typography>
                 <Box sx={{ flexGrow: 1 }} />
