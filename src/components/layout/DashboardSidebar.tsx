@@ -1,24 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {
-    Drawer,
-    List,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Toolbar,
-    Divider,
-    Box,
-    Typography,
-    IconButton,
-    Collapse,
-    Tooltip,
-    useMediaQuery,
-    useTheme,
+    Drawer, List, ListItemButton, ListItemIcon, ListItemText,
+    Toolbar, Divider, Box, Typography, IconButton, Collapse,
+    Tooltip, useMediaQuery, useTheme,
 } from "@mui/material";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import SettingsIcon from "@mui/icons-material/Settings";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
@@ -26,18 +12,21 @@ import MenuIcon from "@mui/icons-material/Menu";
 
 import { useSidebarStore } from "../../store/useSidebarStore";
 import Logo from "../../assets/react.svg";
-import StudentPage from "../../pages/StudentPage";
+import { routeConfig } from "../../configs/sidebar-routes.tsx";
+import {useAuthStore} from "../../store/useAuthStore.ts";
+
+// Mock role (Replace with actual user role from auth/context)
+
 
 const drawerWidth = 350;
 const collapsedWidth = 140;
 
-// Dummy components
-const MonthlyReportPage = () => <div>Monthly Report</div>;
-const AnnualReportPage = () => <div>Annual Report</div>;
-const ProfilePage = () => <div>Profile</div>;
-const PreferencesPage = () => <div>Preferences</div>;
-
 const DashboardSidebar: React.FC = () => {
+
+    // get the role by loged user
+    const { role } = useAuthStore();
+    const currentUserRole = role;
+
     const { selectedPage, setSelectedPage } = useSidebarStore();
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -55,32 +44,11 @@ const DashboardSidebar: React.FC = () => {
         setOpenSubMenu((prev) => (prev === menu ? null : menu));
     };
 
-    const menuItems = [
-        {
-            text: "Dashboard",
-            icon: <DashboardIcon />,
-            component: <StudentPage />,
-        },
-        {
-            text: "Reports",
-            icon: <BarChartIcon />,
-            subItems: [
-                { text: "Monthly Report", component: <MonthlyReportPage /> },
-                { text: "Annual Report", component: <AnnualReportPage /> },
-            ],
-        },
-        {
-            text: "Settings",
-            icon: <SettingsIcon />,
-            subItems: [
-                { text: "Profile", component: <ProfilePage /> },
-                { text: "Preferences", component: <PreferencesPage /> },
-            ],
-        },
-    ];
+    const filteredRoutes = routeConfig.filter((route) =>
+        route.roles.includes(currentUserRole)
+    );
 
     return (
-
         <Drawer
             variant="permanent"
             sx={{
@@ -91,7 +59,6 @@ const DashboardSidebar: React.FC = () => {
                     transition: "width 0.3s",
                     boxSizing: "border-box",
                     background: "radial-gradient(circle, #ffffff, #1a73e8)",
-                    borderRight: "1px solid #e0e0e0",
                     overflow: "hidden",
                 },
             }}
@@ -100,21 +67,20 @@ const DashboardSidebar: React.FC = () => {
                 sx={{
                     justifyContent: isCollapsed ? "center" : "space-between",
                     minHeight: "55px !important",
-                    backgroundColor: "1a73e8",
-                    borderBottom: "0px solid #e0e0e0",
-                    marginTop:2,
+                    backgroundColor: "#1a73e8",
+                    marginTop: 2,
                     px: 2,
                 }}
             >
                 {!isCollapsed && (
                     <Box display="flex" alignItems="center" gap={1}>
                         <img src={Logo} alt="Logo" width={32} height={32} />
-                        <Typography variant="h6" noWrap  sx={{ color: (theme) => theme.palette.common.white }}>
-                            SLMS
+                        <Typography variant="h6" noWrap sx={{ color: "#fff" }}>
+                            DMMS
                         </Typography>
                     </Box>
                 )}
-                <IconButton onClick={toggleDrawer} sx={{ color: (theme) => theme.palette.common.white }}>
+                <IconButton onClick={toggleDrawer} sx={{ color: "#fff" }}>
                     {isCollapsed ? <MenuIcon /> : <MenuOpenIcon />}
                 </IconButton>
             </Toolbar>
@@ -123,142 +89,117 @@ const DashboardSidebar: React.FC = () => {
                 <Box
                     sx={{
                         overflowY: "auto",
-                        height: "calc(100vh - 64px - 32px)", // Adjust height to avoid overflow
+                        height: "calc(100vh - 64px - 32px)",
                         background: "linear-gradient(to top, whitesmoke, #ffffff)",
                         borderRadius: 2,
                         p: 1,
                         boxShadow: "inset 0 0 4px rgba(0,0,0,0.05)",
-
                     }}
                 >
-
                     <List sx={{ mt: 2 }}>
                         {!isCollapsed && (
                             <Typography
                                 variant="caption"
-                                sx={{ pl: 2, pb: 1, mb: 0, color: "text.secondary", fontWeight: 600 }}
+                                sx={{ pl: 2, pb: 1, color: "text.secondary", fontWeight: 600 }}
                             >
                                 MAIN MENU
                             </Typography>
                         )}
+                        <Divider sx={{ my: 1 }} />
+                        <br />
 
-                        <Divider sx={{ my: 1 }} variant="middle" component="li" />
-                        <br/>
+                        {filteredRoutes.map((item) => {
+                            const hasSubItems = item.subItems && item.subItems.length > 0;
 
-                        {menuItems.map((item) => (
-                            <React.Fragment key={item.text}>
-                                <Tooltip title={isCollapsed ? item.text : ""} placement="right" arrow>
-                                    <ListItemButton
-                                        selected={selectedPage === item.text}
-                                        onClick={() =>
-                                            item.subItems
-                                                ? handleSubMenuClick(item.text)
-                                                : setSelectedPage(item.text, item.component)
-                                        }
-                                        sx={{
-                                            mx: 1,
-                                            mb: 1,
-                                            borderRadius: 2,
-                                            color: selectedPage === item.text ? "primary.main" : "text.primary",
-                                            backgroundColor: selectedPage === item.text ? "primary.light" : "transparent",
-                                            "&:hover": {
-                                                backgroundColor: "primary.light",
-                                            },
-                                        }}
-                                    >
-                                        <ListItemIcon
+                            return (
+                                <React.Fragment key={item.text}>
+                                    <Tooltip title={isCollapsed ? item.text : ""} placement="right" arrow>
+                                        <ListItemButton
+                                            selected={selectedPage === item.text}
+                                            onClick={() =>
+                                                hasSubItems
+                                                    ? handleSubMenuClick(item.text)
+                                                    : item.component &&
+                                                    setSelectedPage(item.text, <item.component />)
+                                            }
                                             sx={{
-                                                color:
-                                                    selectedPage === item.text
-                                                        ? "primary.main"
-                                                        : "text.secondary",
-                                                minWidth: 36,
-                                                justifyContent: "center",
+                                                mx: 1,
+                                                mb: 1,
+                                                borderRadius: 2,
+                                                color: selectedPage === item.text ? "primary.main" : "text.primary",
+                                                backgroundColor:
+                                                    selectedPage === item.text ? "primary.light" : "transparent",
+                                                "&:hover": {
+                                                    backgroundColor: "primary.light",
+                                                },
                                             }}
                                         >
-                                            {item.icon}
-                                        </ListItemIcon>
-                                        {!isCollapsed && (
-                                            <>
-                                                <ListItemText primary={item.text} />
-                                                {item.subItems &&
-                                                    (openSubMenu === item.text ? <ExpandLess /> : <ExpandMore />)}
-                                            </>
-                                        )}
-                                    </ListItemButton>
-                                </Tooltip>
+                                            <ListItemIcon
+                                                sx={{
+                                                    color: selectedPage === item.text
+                                                        ? "primary.main"
+                                                        : "text.secondary",
+                                                    minWidth: 36,
+                                                    justifyContent: "center",
+                                                }}
+                                            >
+                                                {item.icon}
+                                            </ListItemIcon>
+                                            {!isCollapsed && (
+                                                <>
+                                                    <ListItemText primary={item.text} />
+                                                    {hasSubItems &&
+                                                        (openSubMenu === item.text ? <ExpandLess /> : <ExpandMore />)}
+                                                </>
+                                            )}
+                                        </ListItemButton>
+                                    </Tooltip>
 
-                                {item.subItems && !isCollapsed && (
-                                    <Collapse in={openSubMenu === item.text} timeout="auto" unmountOnExit>
-                                        <List component="div" disablePadding>
-                                            {item.subItems.map((subItem) => (
-                                                <ListItemButton
-                                                    key={subItem.text}
-                                                    onClick={() =>
-                                                        setSelectedPage(subItem.text, subItem.component)
-                                                    }
-                                                    selected={selectedPage === subItem.text}
-                                                    sx={{
-                                                        pl: 6,
-                                                        mx: 1,
-                                                        mb: 1,
-                                                        borderRadius: 2,
-                                                        backgroundColor:
-                                                            selectedPage === subItem.text
-                                                                ? "primary.light"
-                                                                : "transparent",
-                                                        "&:hover": {
-                                                            backgroundColor: "primary.light",
-                                                        },
-                                                    }}
-                                                >
-                                                    <ListItemText
-                                                        primary={subItem.text}
-                                                        sx={{
-                                                            color:
-                                                                selectedPage === subItem.text
-                                                                    ? "primary.main"
-                                                                    : "text.primary",
-                                                        }}
-                                                    />
-                                                </ListItemButton>
-                                            ))}
-                                        </List>
-                                    </Collapse>
-                                )}
-                            </React.Fragment>
-                        ))}
+                                    {hasSubItems && !isCollapsed && (
+                                        <Collapse in={openSubMenu === item.text} timeout="auto" unmountOnExit>
+                                            <List component="div" disablePadding>
+                                                {item.subItems
+                                                    .filter((sub) => sub.roles.includes(currentUserRole))
+                                                    .map((subItem) => (
+                                                        <ListItemButton
+                                                            key={subItem.text}
+                                                            onClick={() =>
+                                                                subItem.component &&
+                                                                setSelectedPage(subItem.text, <subItem.component />)
+                                                            }
+                                                            selected={selectedPage === subItem.text}
+                                                            sx={{
+                                                                pl: 6,
+                                                                mx: 1,
+                                                                mb: 1,
+                                                                borderRadius: 2,
+                                                                backgroundColor:
+                                                                    selectedPage === subItem.text
+                                                                        ? "primary.light"
+                                                                        : "transparent",
+                                                                "&:hover": {
+                                                                    backgroundColor: "primary.light",
+                                                                },
+                                                            }}
+                                                        >
+                                                            <ListItemText
+                                                                primary={subItem.text}
+                                                                sx={{
+                                                                    color:
+                                                                        selectedPage === subItem.text
+                                                                            ? "primary.main"
+                                                                            : "text.primary",
+                                                                }}
+                                                            />
+                                                        </ListItemButton>
+                                                    ))}
+                                            </List>
+                                        </Collapse>
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
                     </List>
-
-                    {/*<Divider sx={{ my: 2 }} />*/}
-
-                    {/*<List>*/}
-                    {/*    {!isCollapsed && (*/}
-                    {/*        <Typography*/}
-                    {/*            variant="caption"*/}
-                    {/*            sx={{ pl: 2, pb: 1, color: "text.secondary", fontWeight: 600 }}*/}
-                    {/*        >*/}
-                    {/*            SUPPORT*/}
-                    {/*        </Typography>*/}
-                    {/*    )}*/}
-                    {/*    <Tooltip title={isCollapsed ? "Help & Support" : ""} placement="right" arrow>*/}
-                    {/*        <ListItemButton*/}
-                    {/*            onClick={() => window.open("https://support.example.com", "_blank")}*/}
-                    {/*            sx={{*/}
-                    {/*                mx: 1,*/}
-                    {/*                borderRadius: 2,*/}
-                    {/*                "&:hover": {*/}
-                    {/*                    backgroundColor: "primary.light",*/}
-                    {/*                },*/}
-                    {/*            }}*/}
-                    {/*        >*/}
-                    {/*            <ListItemIcon sx={{ minWidth: 36, justifyContent: "center" }}>*/}
-                    {/*                <HelpOutlineIcon />*/}
-                    {/*            </ListItemIcon>*/}
-                    {/*            {!isCollapsed && <ListItemText primary="Help & Support" />}*/}
-                    {/*        </ListItemButton>*/}
-                    {/*    </Tooltip>*/}
-                    {/*</List>*/}
                 </Box>
             </Box>
         </Drawer>

@@ -2,10 +2,10 @@ import React from "react";
 import { routeConfig } from "../../configs/sidebar-routes";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useSidebarStore } from "../../store/useSidebarStore";
-import { Box, Typography, Breadcrumbs, Link } from "@mui/material";
-import BadgeIcon from '@mui/icons-material/Badge';
+import { Box, Typography,Container } from "@mui/material";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import { findBreadcrumbTrail } from "./utils/findBreadcrumbTrail";
+import HeaderToolbar from "../../components/HeaderToolbar.tsx"; // adjust path as needed
 
 const DashboardContent: React.FC = () => {
     const role = useAuthStore((state) => state.role);
@@ -29,61 +29,35 @@ const DashboardContent: React.FC = () => {
         return <Typography color="error">Unknown Page or Access Denied</Typography>;
     };
 
+    const handleBreadcrumbClick = (text: string) => {
+        useSidebarStore.setState({ selectedPage: text });
+    };
+
     return (
         <DashboardLayout>
             <Box py={1} px={1}>
-
-                <Box
+                {/*header with breadcrumb and logger-role chip */}
+                <HeaderToolbar
+                    breadcrumbTrail={breadcrumbTrail}
+                    role={role}
+                    onBreadcrumbClick={handleBreadcrumbClick}
+                />
+                {/*main content area */}
+                <Container
+                    maxWidth={false}
                     sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: 2
+                        width: '100%',
+                        height: '100%',
+                        p: 8,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        backgroundColor: 'background.default',
+                        borderRadius: 2,
+                        boxShadow: 8
                     }}
                 >
-                    {/* Breadcrumbs on the left */}
-                    <Breadcrumbs aria-label="breadcrumb">
-                        {breadcrumbTrail.map((crumb, index) =>
-                            index < breadcrumbTrail.length - 1 ? (
-                                <Link
-                                    key={crumb.text}
-                                    color="inherit"
-                                    onClick={() => {
-                                        useSidebarStore.setState({ selectedPage: crumb.text });
-                                    }}
-                                    underline="hover"
-                                    sx={{ cursor: "pointer" }}
-                                >
-                                    {crumb.text}
-                                </Link>
-                            ) : (
-                                <Typography key={crumb.text} color="text.primary">
-                                    {crumb.text}
-                                </Typography>
-                            )
-                        )}
-                    </Breadcrumbs>
-
-                    {/* Role on the right */}
-                    <Typography
-                        variant="subtitle1"
-                        sx={{
-                            fontWeight: 500,
-                            color: "text.secondary",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1
-                        }}
-                    >
-                        <BadgeIcon sx={{ fontSize: 20 }} />
-                        Role:{" "}
-                        <Box component="span" sx={{ fontWeight: 600, color: "text.primary" }}>
-                            {role}
-                        </Box>
-                    </Typography>
-                </Box>
-
                 {findComponent(selectedPage)}
+                </Container>
             </Box>
         </DashboardLayout>
     );

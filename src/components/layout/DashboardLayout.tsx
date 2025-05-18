@@ -12,12 +12,20 @@ interface Props {
 const DashboardLayout: React.FC<Props> = ({ children }) => {
     return (
         <Box sx={{ display: "flex", minHeight: "100vh" }}>
+            {/*side-bar*/}
             <DashboardSidebar />
+
             <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+
+                {/*upper nav-bar with loging and logout */}
                 <DashboardNavbar />
-                <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+
+                {/*main content area*/}
+                <Box component="main" sx={{ flexGrow: 1, p: 3}}>
                     {children}
                 </Box>
+
+                {/*footer section*/}
                 {/*<Footer />*/}
             </Box>
         </Box>

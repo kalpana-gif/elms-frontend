@@ -1,45 +1,67 @@
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import SettingsIcon from "@mui/icons-material/Settings";
+// src/config/routeConfig.ts
 
-import StudentPage from "../pages/StudentPage";
-import TeacherPage from "../pages/TeacherPage";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import SchoolIcon from "@mui/icons-material/School";
+import GroupIcon from "@mui/icons-material/Group";
+import PersonIcon from "@mui/icons-material/Person";
+import SettingsIcon from "@mui/icons-material/Settings";
+import { lazy } from "react";
 
 export type RouteItem = {
     text: string;
     icon: JSX.Element;
     component?: React.FC;
     roles: string[];
-    subItems?: RouteItem[];
     path?: string;
+    subItems?: RouteItem[];
 };
 
 export const routeConfig: RouteItem[] = [
     {
         text: "Dashboard",
         icon: <DashboardIcon />,
+        component: lazy(() => import("../pages/StudentPage.tsx")),
         path: "/dashboard",
-        component: StudentPage,
-        roles: ["admin", "student", "teacher"],
+        roles: ["admin", "teacher", "student"],
     },
     {
-        text: "Reports",
-        icon: <BarChartIcon />,
-        path: "/reports",
+        text: "Courses",
+        icon: <SchoolIcon />,
         roles: ["admin", "teacher"],
         subItems: [
             {
-                text: "Monthly Report",
-                path: "/reports/monthly",
-                component: TeacherPage,
-                icon: <></>,
+                text: "All Courses",
+                icon: <SchoolIcon />,
+                component: lazy(() => import("../pages/StudentPage")),
+                path: "/courses",
                 roles: ["admin", "teacher"],
             },
             {
-                text: "Annual Report",
-                path: "/reports/annual",
-                component: StudentPage,
-                icon: <></>,
+                text: "Create Course",
+                icon: <SchoolIcon />,
+                component: lazy(() => import("../pages/StudentPage")),
+                path: "/courses/create",
+                roles: ["admin"],
+            },
+        ],
+    },
+    {
+        text: "Users",
+        icon: <GroupIcon />,
+        roles: ["admin"],
+        subItems: [
+            {
+                text: "All Users",
+                icon: <PersonIcon />,
+                component: lazy(() => import("../pages/StudentPage")),
+                path: "/users",
+                roles: ["admin"],
+            },
+            {
+                text: "Add User",
+                icon: <PersonIcon />,
+                component: lazy(() => import("../pages/StudentPage")),
+                path: "/users/add",
                 roles: ["admin"],
             },
         ],
@@ -47,23 +69,8 @@ export const routeConfig: RouteItem[] = [
     {
         text: "Settings",
         icon: <SettingsIcon />,
+        component: lazy(() => import("../pages/StudentPage")),
         path: "/settings",
-        roles: ["admin"],
-        subItems: [
-            {
-                text: "Profile",
-                path: "/settings/profile",
-                component: StudentPage,
-                icon: <></>,
-                roles: ["admin"],
-            },
-            {
-                text: "Preferences",
-                path: "/settings/preferences",
-                component: StudentPage,
-                icon: <></>,
-                roles: ["admin"],
-            },
-        ],
+        roles: ["admin", "teacher"],
     },
 ];
