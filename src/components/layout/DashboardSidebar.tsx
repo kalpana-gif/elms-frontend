@@ -66,10 +66,12 @@ const DashboardSidebar: React.FC = () => {
             <Toolbar
                 sx={{
                     justifyContent: isCollapsed ? "center" : "space-between",
-                    minHeight: "55px !important",
-                    backgroundColor: "#1a73e8",
+                    minHeight: "60px !important",
+                    backgroundColor: "#fffff",
                     marginTop: 2,
-                    px: 2,
+                    px: 6,
+                    borderRadius: 2,
+
                 }}
             >
                 {!isCollapsed && (

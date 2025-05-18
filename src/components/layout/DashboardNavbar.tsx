@@ -14,7 +14,9 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import {useAuthStore} from "../../store/useAuthStore.ts";
 
 const DashboardNavbar: React.FC = () => {
-    const { role, logout } = useAuthStore();
+
+    const { role, username, logout } = useAuthStore(); // <-- simpler
+
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
     const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -35,12 +37,18 @@ const DashboardNavbar: React.FC = () => {
                 )}
                 {role === "teacher" && (
                     <Button color="inherit">Teacher Panel</Button>
-                )}
-                <IconButton color="inherit" onClick={handleMenu}>
-                    <AccountCircle />
-                </IconButton>
+                )}|
+                <Button
+                    color="inherit"
+                    startIcon={<AccountCircle />}
+                    onClick={handleMenu}
+                    sx={{ textTransform: 'none', fontWeight: 500 }}
+                >
+                    {username}
+                </Button>
                 <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-                    <MenuItem disabled>Role: {role}</MenuItem>
+                    <MenuItem disabled>Role:{role}</MenuItem>
+                    <MenuItem disabled>UserName:{username}</MenuItem>
                     <MenuItem onClick={logout}>Logout</MenuItem>
                 </Menu>
             </Toolbar>

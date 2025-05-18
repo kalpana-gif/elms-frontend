@@ -37,7 +37,7 @@ export default function Login() {
             (u) => u.username === username && u.password === password
         );
         if (user) {
-            login(user.role);
+            login(user.role, user.username); //set userName and user Role
             navigate(`/${user.role}`);
         } else {
             setError('Invalid credentials.');

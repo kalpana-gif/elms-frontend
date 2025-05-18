@@ -2,31 +2,26 @@ import { create } from 'zustand';
 
 interface AuthState {
     role: string | null;
-    login: (role: string) => void;
+    username: string | null;
+    login: (role: string, username: string) => void;
     logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
     role: null,
-    login: (role) => {
+    username: null,
+    login: (role, username) => {
         if (typeof window !== 'undefined') {
             localStorage.setItem('userRole', role);
+            localStorage.setItem('userName', username);
         }
-        set({ role });
+        set({ role, username }); // ✅ update both role and username
     },
     logout: () => {
         if (typeof window !== 'undefined') {
             localStorage.removeItem('userRole');
+            localStorage.removeItem('userName');
         }
-        set({ role: null });
+        set({ role: null, username: null }); // ✅ clear both on logout
     },
 }));
-
-export const initializeAuthStore = () => {
-    if (typeof window !== 'undefined') {
-        const role = localStorage.getItem('userRole');
-        if (role) {
-            useAuthStore.getState().login(role);
-        }
-    }
-};
