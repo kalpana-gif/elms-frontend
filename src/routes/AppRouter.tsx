@@ -1,6 +1,3 @@
-// ❌ DON'T DO THIS HERE:
-// import { BrowserRouter as Router } from 'react-router-dom';
-
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Dashboard from '../pages/Dashboard';
@@ -9,7 +6,7 @@ import TeacherPage from '../pages/TeacherPage';
 import StudentPage from '../pages/StudentPage';
 import ParentPage from '../pages/ParentPage';
 import Unauthorized from '../pages/Unauthorized';
-import ProtectedRoute from '../components/ProtectedRoute';
+import ProtectedRoute from './ProtectedRoute.tsx';
 
 const AppRouter = () => (
     <Routes>
@@ -24,19 +21,21 @@ const AppRouter = () => (
             }
         />
 
-        <Route
-            path="/test"
-            element={
-                <ProtectedRoute allowedRoles={['test']}>
-                    <h1>Hi TEST</h1>
-                </ProtectedRoute>
-            }
-        />
+        {/*<Route*/}
+        {/*    path="/test"*/}
+        {/*    element={*/}
+        {/*        <ProtectedRoute allowedRoles={['test']}>*/}
+        {/*            <Dashboard />*/}
+        {/*        </ProtectedRoute>*/}
+        {/*    }*/}
+        {/*/>*/}
+
         <Route
             path="/admin"
             element={
                 <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminPage />
+                    {/*<AdminPage />*/}
+                    <Dashboard />
                 </ProtectedRoute>
             }
         />
@@ -44,7 +43,7 @@ const AppRouter = () => (
             path="/teacher"
             element={
                 <ProtectedRoute allowedRoles={['teacher']}>
-                    <TeacherPage />
+                    <Dashboard />
                 </ProtectedRoute>
             }
         />

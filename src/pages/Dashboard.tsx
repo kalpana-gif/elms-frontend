@@ -1,15 +1,26 @@
-import { Typography, Button, Box } from '@mui/material';
-import { useAuth } from '../auth/useAuth';
+import { Typography, Button, Box } from "@mui/material";
+import { useAuthStore } from "../store/useAuthStore";
+import DashboardContent from "../layouts/dashboard/DashboardContent.tsx";
 
 const Dashboard = () => {
-    const { role, logout } = useAuth();
+    const { role } = useAuthStore();
 
     return (
-        <Box p={4}>
-            <Typography variant="h4">Dashboard</Typography>
-            <Typography mt={2}>Welcome! Your role is <strong>{role}</strong>.</Typography>
-            <Button variant="outlined" sx={{ mt: 2 }} onClick={logout}>Logout</Button>
-        </Box>
+        <div><DashboardContent role={role} /> </div>
+
+
+        // <Box p={4}>
+        //     {/*<Typography mt={2}>*/}
+        //     {/*    Welcome! Your role is <strong>{role}</strong>.*/}
+        //     {/*</Typography>*/}
+        //     {/*<Button variant="outlined" sx={{ mt: 2, mb: 4 }} onClick={logout}>*/}
+        //     {/*    Logout*/}
+        //     {/*</Button>*/}
+        //
+        //     {/* Dashboard Widgets / Layout */}
+        //
+        //
+        // </Box>
     );
 };
 

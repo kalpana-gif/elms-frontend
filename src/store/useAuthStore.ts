@@ -1,3 +1,4 @@
+// src/store/useAuthStore.ts
 import { create } from 'zustand';
 
 interface AuthState {
@@ -7,7 +8,13 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-    role: null,
-    login: (role: string) => set({ role }),
-    logout: () => set({ role: null }),
+    role: localStorage.getItem('userRole') || null,
+    login: (role) => {
+        localStorage.setItem('userRole', role);
+        set({ role });
+    },
+    logout: () => {
+        localStorage.removeItem('userRole');
+        set({ role: null });
+    },
 }));
