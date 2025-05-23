@@ -43,21 +43,21 @@ const DashboardContent: React.FC = () => {
                     onBreadcrumbClick={handleBreadcrumbClick}
                 />
                 {/*main content area */}
-                <Container
-                    maxWidth={false}
-                    sx={{
-                        width: '100%',
-                        height: '100%',
-                        p: 8,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        backgroundColor: 'background.default',
-                        borderRadius: 2,
-                        boxShadow: 8
-                    }}
-                >
+                {/*<Container*/}
+                {/*    maxWidth={false}*/}
+                {/*    sx={{*/}
+                {/*        width: '100%',*/}
+                {/*        height: '100%',*/}
+                {/*        p: 8,*/}
+                {/*        display: 'flex',*/}
+                {/*        flexDirection: 'column',*/}
+                {/*        backgroundColor: 'background.default',*/}
+                {/*        borderRadius: 2,*/}
+                {/*        boxShadow: 8*/}
+                {/*    }}*/}
+                {/*>*/}
                 {findComponent(selectedPage)}
-                </Container>
+                {/*</Container>*/}
             </Box>
         </DashboardLayout>
     );

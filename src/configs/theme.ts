@@ -19,6 +19,7 @@ const theme = createTheme({
         },
         bd_navbar:{
             panelBg:  "radial-gradient(circle, #1a73e8, #1a73e8)",
+            panelBg:  "#1a73e8",
         }
     },
 });

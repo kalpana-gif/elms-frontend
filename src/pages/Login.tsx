@@ -37,7 +37,7 @@ export default function Login() {
             (u) => u.username === username && u.password === password
         );
         if (user) {
-            login(user.role, user.username); //set userName and user Role
+            login(user.role, user.username); // Set userName and user Role
             navigate(`/${user.role}`);
         } else {
             setError('Invalid credentials.');
@@ -47,33 +47,46 @@ export default function Login() {
     return (
         <Box
             sx={{
-                background: 'linear-gradient(to right, #ffffff, #ffffff)',
+                background: 'linear-gradient(to right, #ece9e6, #ffffff)',
                 minHeight: '100vh',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
             }}
         >
-            <Container component="main" maxWidth="xs">
+            <Container component="main" maxWidth="sm" sx={{ width: 520 }}>
                 <CssBaseline />
                 <Paper
                     elevation={6}
                     sx={{
-                        padding: 4,
-                        borderRadius: 3,
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        minHeight: 520,
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: 'center',
-                        backgroundColor: '#ffffffdd',
-                        backdropFilter: 'blur(6px)',
                     }}
                 >
-                    <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
-                        <LockOutlinedIcon />
-                    </Avatar>
-                    <Typography component="h1" variant="h5" sx={{ fontWeight: 600 }}>
-                        Sign in
-                    </Typography>
-                    <Box sx={{ mt: 2, width: '100%' }}>
+                    {/* Gradient Header */}
+                    <Box
+                        sx={{
+                            background: 'linear-gradient(to right, #3f51b5, #2196f3)',
+                            color: '#fff',
+                            p: 3,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Avatar sx={{ bgcolor: '#fff', color: 'primary.main', mb: 1 }}>
+                            <LockOutlinedIcon />
+                        </Avatar>
+                        <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                            Sign in
+                        </Typography>
+                    </Box>
+
+                    {/* Login Form */}
+                    <Box sx={{ p: 3, flexGrow: 1 }}>
                         <TextField
                             fullWidth
                             label="Username"
@@ -119,15 +132,11 @@ export default function Login() {
                                     Forgot password?
                                 </Link>
                             </Grid>
-                            {/*<Grid item>*/}
-                            {/*    <Link href="#" variant="body2" underline="hover">*/}
-                            {/*        {"Don't have an account? Sign Up"}*/}
-                            {/*    </Link>*/}
-                            {/*</Grid>*/}
                         </Grid>
                     </Box>
                 </Paper>
             </Container>
+
         </Box>
     );
 }
