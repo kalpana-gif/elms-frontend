@@ -1,27 +1,29 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface AuthState {
+    uid: string | null;
     role: string | null;
     username: string | null;
-    login: (role: string, username: string) => void;
+    login: (uid: string, role: string, username: string) => void;
     logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-    role: null,
-    username: null,
-    login: (role, username) => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('userRole', role);
-            localStorage.setItem('userName', username);
+export const useAuthStore = create<AuthState>()(
+    persist(
+        (set) => ({
+            uid: null,
+            role: null,
+            username: null,
+            login: (uid, role, username) => {
+                set({ uid, role, username });
+            },
+            logout: () => {
+                set({ uid: null, role: null, username: null });
+            },
+        }),
+        {
+            name: 'auth-storage',
         }
-        set({ role, username }); // ✅ update both role and username
-    },
-    logout: () => {
-        if (typeof window !== 'undefined') {
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('userName');
-        }
-        set({ role: null, username: null }); // ✅ clear both on logout
-    },
-}));
+    )
+);
