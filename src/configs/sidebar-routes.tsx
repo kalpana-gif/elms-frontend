@@ -5,6 +5,7 @@ import SchoolIcon from "@mui/icons-material/School";
 import GroupIcon from "@mui/icons-material/Group";
 import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
+import RoomPreferencesIcon from '@mui/icons-material/RoomPreferences';
 import { lazy } from "react";
 
 export type RouteItem = {
@@ -39,9 +40,9 @@ export const routeConfig: RouteItem[] = [
             {
                 text: "Create Course",
                 icon: <SchoolIcon />,
-                component: lazy(() => import("../pages/StudentPage")),
+                component: lazy(() => import("../pages/CourseCreatePage.tsx")),
                 path: "/courses/create",
-                roles: ["teacher"],
+                roles: ["admin"],
             },
         ],
     },
@@ -51,20 +52,35 @@ export const routeConfig: RouteItem[] = [
         roles: ["admin"],
         subItems: [
             {
-                text: "All Users",
-                icon: <PersonIcon />,
-                component: lazy(() => import("../pages/ManageUserPage.tsx")),
-                path: "/users/viewall",
-                roles: ["admin"],
-            },
-            {
                 text: "Add User",
                 icon: <PersonIcon />,
                 component: lazy(() => import("../pages/AddUserPage.tsx")),
                 path: "/users/add",
                 roles: ["admin"],
             },
+            {
+                text: "All Users",
+                icon: <PersonIcon />,
+                component: lazy(() => import("../pages/ManageUserPage.tsx")),
+                path: "/users/viewall",
+                roles: ["admin"],
+            },
+
+            {
+                text: "Setup Student",
+                icon: <SettingsIcon />,
+                component: lazy(() => import("../pages/StudentSetupPage.tsx")),
+                path: "/users/setup-student",
+                roles: ["admin"],
+            },
         ],
+    },
+    {
+        text: "Class Room Setup",
+        icon: <RoomPreferencesIcon />,
+        component: lazy(() => import("../pages/ClassRoomSetupPage.tsx")),
+        path: "/class-room",
+        roles: ["admin"],
     },
     {
         text: "Settings",

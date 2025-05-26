@@ -22,7 +22,7 @@ import {
     MenuItem,
     Chip,
     useMediaQuery,
-    Divider, Avatar,
+    Divider, Avatar, useTheme,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -47,6 +47,7 @@ const ManageUserPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
     const isMobile = useMediaQuery('(max-width:600px)');
+    const theme = useTheme();
 
     const fetchUsers = async () => {
         try {
@@ -126,7 +127,7 @@ const ManageUserPage = () => {
     });
 
     return (
-        <Box p={3}>
+        <Box p={isMobile ? 2 : 4}>
             <Card sx={{ borderRadius: 4, boxShadow: 6 }}>
                 <Box
                     sx={{
@@ -190,8 +191,8 @@ const ManageUserPage = () => {
                     <Divider sx={{ mb: 2 }} />
 
                     <TableContainer component={Paper} elevation={1}>
-                        <Table>
-                            <TableHead>
+                        <Table size="small">
+                            <TableHead sx={{ backgroundColor: theme.palette.grey[100] }}>
                                 <TableRow>
                                     <TableCell><strong>Name</strong></TableCell>
                                     <TableCell><strong>Email</strong></TableCell>

@@ -18,13 +18,12 @@ import { useEffect, useState } from 'react';
 import axios from '../api/axiosConfig';
 import { showSuccessAlert, showErrorAlert } from '../components/Alert.tsx';
 
-
 const roles = ['student', 'admin', 'teacher', 'parent'];
 
 const generatePassword = (length = 12) => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let password = '';
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < length; i++) {
         password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return password;
@@ -41,6 +40,8 @@ const AddUserPage = () => {
         role: '',
     });
 
+    const [emailError, setEmailError] = useState('');
+
     const generateAndSetPassword = () => {
         const newPassword = generatePassword();
         setUser((prev) => ({ ...prev, password: newPassword }));
@@ -48,9 +49,18 @@ const AddUserPage = () => {
 
     useEffect(() => {
         generateAndSetPassword();
-    }, []); // Only runs once on initial load
+    }, []);
 
     const handleChange = (field: string, value: string) => {
+        if (field === 'email') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                setEmailError('Please enter a valid email address');
+            } else {
+                setEmailError('');
+            }
+        }
+
         setUser((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -60,7 +70,6 @@ const AddUserPage = () => {
             console.log('User created:', response.data);
             await showSuccessAlert('User Created', 'The user has been created successfully!');
 
-            // Reset form with new password
             setUser({
                 firstName: '',
                 lastName: '',
@@ -70,6 +79,7 @@ const AddUserPage = () => {
                 address: '',
                 role: '',
             });
+            setEmailError('');
         } catch (error) {
             console.error('Error creating user:', error);
             await showErrorAlert('Error', 'Something went wrong while creating the user!');
@@ -82,7 +92,8 @@ const AddUserPage = () => {
         user.email &&
         user.phone &&
         user.address &&
-        user.role;
+        user.role &&
+        !emailError;
 
     return (
         <Box display="flex" justifyContent="center" minHeight="80vh" bgcolor="#fffff" p={2}>
@@ -153,6 +164,8 @@ const AddUserPage = () => {
                                     variant="outlined"
                                     value={user.email}
                                     onChange={(e) => handleChange('email', e.target.value)}
+                                    error={!!emailError}
+                                    helperText={emailError}
                                 />
                                 <TextField
                                     fullWidth
@@ -211,7 +224,7 @@ const AddUserPage = () => {
                                 </TextField>
                             </Stack>
                         </Box>
-                        <br/>
+
                         {/* Submit Button */}
                         <Box display="flex" justifyContent="flex-end">
                             <Button
