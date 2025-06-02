@@ -155,7 +155,7 @@ const ManageUserPage = () => {
                     </Box>
                 </Box>
 
-                <CardContent>
+                <CardContent  sx={{ p: 3}}>
                     <Box display="flex" justifyContent="flex-end" flexWrap="wrap" gap={2} mb={3}>
                         <TextField
                             label="Search Users"

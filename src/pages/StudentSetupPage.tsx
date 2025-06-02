@@ -32,41 +32,41 @@ import LinkIcon from '@mui/icons-material/Link';
 import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useState } from 'react';
 import axios from '../api/axiosConfig';
-import { showSuccessAlert, showErrorAlert } from '../components/Alert.tsx';
+import { showSuccessAlert, showErrorAlert } from '../components/Alert';
 
 interface User {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-    role: string;
+    role: 'student' | 'parent' | 'teacher';
+}
+
+interface Subject {
+    id: string;
+    name: string;
+    code: string;
 }
 
 interface GuardianMapping {
-    id: string;
     studentId: string;
-    guardianId: string;
-    batchYear: string;
-    createdAt: string;
-    student: User;
-    guardian: User;
-}
-
-interface GuardianInfo {
     guardian: User;
     batchYear: string;
+    subjects: Subject[];
 }
 
 const StudentSetupPage = () => {
     const [students, setStudents] = useState<User[]>([]);
     const [parents, setParents] = useState<User[]>([]);
     const [teachers, setTeachers] = useState<User[]>([]);
-    const [guardiansMap, setGuardiansMap] = useState<Record<string, GuardianInfo[]>>({});
-    const [searchTerm, setSearchTerm] = useState('');
-    const [openDialog, setOpenDialog] = useState(false);
+    const [subjects, setSubjects] = useState<Subject[]>([]);
+    const [guardiansMap, setGuardiansMap] = useState<Record<string, GuardianMapping[]>>({});
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
     const [selectedGuardianId, setSelectedGuardianId] = useState<string>('');
     const [selectedBatch, setSelectedBatch] = useState<string>('');
+    const [selectedSubjects, setSelectedSubjects] = useState<Subject[]>([]);
 
     const isMobile = useMediaQuery('(max-width:600px)');
     const theme = useTheme();
@@ -77,31 +77,26 @@ const StudentSetupPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [studentsRes, parentsRes, teachersRes, guardianMappingsRes] = await Promise.all([
-                    axios.get('/users?role=student'),
-                    axios.get('/users?role=parent'),
-                    axios.get('/users?role=teacher'),
-                    axios.get('/guardian'),
+                const [studentsRes, parentsRes, teachersRes, guardianMappingsRes, subjectsRes] = await Promise.all([
+                    axios.get<User[]>('/users?role=student'),
+                    axios.get<User[]>('/users?role=parent'),
+                    axios.get<User[]>('/users?role=teacher'),
+                    axios.get<GuardianMapping[]>('/guardian'),
+                    axios.get<Subject[]>('/subject'),
                 ]);
 
                 setStudents(studentsRes.data);
                 setParents(parentsRes.data);
                 setTeachers(teachersRes.data);
+                setSubjects(subjectsRes.data);
 
-                const guardianMappings: GuardianMapping[] = guardianMappingsRes.data;
-
-                const guardianResults: Record<string, GuardianInfo[]> = {};
-                guardianMappings.forEach((mapping) => {
-                    const { studentId, guardian, batchYear } = mapping;
-
+                const guardianResults: Record<string, GuardianMapping[]> = {};
+                guardianMappingsRes.data.forEach((mapping) => {
+                    const { studentId } = mapping;
                     if (!guardianResults[studentId]) {
                         guardianResults[studentId] = [];
                     }
-
-                    guardianResults[studentId].push({
-                        guardian,
-                        batchYear,
-                    });
+                    guardianResults[studentId].push(mapping);
                 });
 
                 setGuardiansMap(guardianResults);
@@ -117,6 +112,7 @@ const StudentSetupPage = () => {
         setSelectedStudent(student);
         setSelectedGuardianId('');
         setSelectedBatch('');
+        setSelectedSubjects([]);
         setOpenDialog(true);
     };
 
@@ -125,11 +121,12 @@ const StudentSetupPage = () => {
         setSelectedStudent(null);
         setSelectedGuardianId('');
         setSelectedBatch('');
+        setSelectedSubjects([]);
     };
 
     const handleSaveMapping = async () => {
-        if (!selectedStudent || !selectedGuardianId || !selectedBatch) {
-            showErrorAlert('Validation', 'Please select a guardian and batch.');
+        if (!selectedStudent || !selectedGuardianId || !selectedBatch || selectedSubjects.length === 0) {
+            showErrorAlert('Validation', 'Please fill all fields including at least one subject.');
             return;
         }
 
@@ -137,23 +134,18 @@ const StudentSetupPage = () => {
             await axios.post(`/students/${selectedStudent.id}/assign-guardian`, {
                 guardianId: selectedGuardianId,
                 batchYear: selectedBatch,
+                subjectIds: selectedSubjects.map((s) => s.id),
             });
 
-            showSuccessAlert('Success', 'Guardian assigned successfully.');
+            showSuccessAlert('Success', 'Guardian and subjects assigned successfully.');
             handleCloseDialog();
 
-            const guardianMappingsRes = await axios.get('/guardian');
-            const guardianMappings: GuardianMapping[] = guardianMappingsRes.data;
-
-            const guardianResults: Record<string, GuardianInfo[]> = {};
-            guardianMappings.forEach((mapping) => {
-                const { studentId, guardian, batchYear } = mapping;
-
-                if (!guardianResults[studentId]) {
-                    guardianResults[studentId] = [];
-                }
-
-                guardianResults[studentId].push({ guardian, batchYear });
+            const guardianMappingsRes = await axios.get<GuardianMapping[]>('/guardian');
+            const guardianResults: Record<string, GuardianMapping[]> = {};
+            guardianMappingsRes.data.forEach((mapping) => {
+                const { studentId } = mapping;
+                if (!guardianResults[studentId]) guardianResults[studentId] = [];
+                guardianResults[studentId].push(mapping);
             });
 
             setGuardiansMap(guardianResults);
@@ -190,11 +182,11 @@ const StudentSetupPage = () => {
                     </Avatar>
                     <Box>
                         <Typography variant="h5" fontWeight="bold">Student Setup</Typography>
-                        <Typography variant="body2">Assign students to guardians (Parents or Teachers)</Typography>
+                        <Typography variant="body2">Assign students to guardians, batches and subjects</Typography>
                     </Box>
                 </Box>
 
-                <CardContent>
+                <CardContent  sx={{ p: 3}}>
                     <Box display="flex" justifyContent="flex-end" mb={2}>
                         <TextField
                             variant="outlined"
@@ -221,8 +213,9 @@ const StudentSetupPage = () => {
                                 <TableRow>
                                     <TableCell><strong>Name</strong></TableCell>
                                     <TableCell><strong>Email</strong></TableCell>
-                                    <TableCell><strong>Assigned Guardians</strong></TableCell>
-                                    <TableCell><strong>Batch Year(s)</strong></TableCell>
+                                    <TableCell><strong>Guardians</strong></TableCell>
+                                    <TableCell><strong>Batch</strong></TableCell>
+                                    <TableCell><strong>Subjects</strong></TableCell>
                                     <TableCell align="center"><strong>Action</strong></TableCell>
                                 </TableRow>
                             </TableHead>
@@ -232,6 +225,8 @@ const StudentSetupPage = () => {
                                         <TableRow key={student.id} hover>
                                             <TableCell>{student.firstName} {student.lastName}</TableCell>
                                             <TableCell>{student.email}</TableCell>
+
+                                            {/* Guardians */}
                                             <TableCell>
                                                 {guardiansMap[student.id]?.length > 0 ? (
                                                     guardiansMap[student.id].map(({ guardian }) => (
@@ -248,11 +243,13 @@ const StudentSetupPage = () => {
                                                     <Chip label="No Guardian Assigned" size="small" color="error" />
                                                 )}
                                             </TableCell>
+
+                                            {/* Batch */}
                                             <TableCell>
                                                 {guardiansMap[student.id]?.length > 0 ? (
-                                                    guardiansMap[student.id].map(({ guardian, batchYear }) => (
+                                                    guardiansMap[student.id].map(({ batchYear }, index) => (
                                                         <Chip
-                                                            key={`${guardian.id}-${batchYear}`}
+                                                            key={`batch-${index}`}
                                                             label={batchYear}
                                                             size="small"
                                                             color="secondary"
@@ -260,11 +257,31 @@ const StudentSetupPage = () => {
                                                         />
                                                     ))
                                                 ) : (
-                                                    <Typography variant="body2" color="textSecondary">—</Typography>
+                                                    <Chip label="No Batch Assigned" size="small" color="error" />
                                                 )}
                                             </TableCell>
+
+                                            {/* Subjects */}
+                                            <TableCell>
+                                                {guardiansMap[student.id]?.some(({ subjects }) => subjects && subjects.length > 0) ? (
+                                                    guardiansMap[student.id]?.flatMap(({ subjects = [] }, index) =>
+                                                        subjects.map((subject) => (
+                                                            <Chip
+                                                                key={`${index}-${subject.id}`}
+                                                                label={`${subject.name} (${subject.code})`}
+                                                                size="small"
+                                                                color="info"
+                                                                sx={{ mr: 0.5, mb: 0.5 }}
+                                                            />
+                                                        ))
+                                                    )
+                                                ) : (
+                                                    <Chip label="No Subjects Assigned" size="small" color="error" />
+                                                )}
+                                            </TableCell>
+
                                             <TableCell align="center">
-                                                <Tooltip title="Assign Guardian">
+                                                <Tooltip title="Assign Guardian and Subjects">
                                                     <IconButton onClick={() => handleOpenDialog(student)}>
                                                         <LinkIcon color="primary" />
                                                     </IconButton>
@@ -274,7 +291,7 @@ const StudentSetupPage = () => {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={5} align="center">
+                                        <TableCell colSpan={6} align="center">
                                             <Typography variant="body2" color="text.secondary">
                                                 No students found.
                                             </Typography>
@@ -287,9 +304,9 @@ const StudentSetupPage = () => {
                 </CardContent>
             </Card>
 
-            {/* Assign Guardian Dialog */}
+            {/* Dialog */}
             <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-                <DialogTitle>Assign Guardian</DialogTitle>
+                <DialogTitle>Assign Guardian and Subjects</DialogTitle>
                 <Divider />
                 <DialogContent>
                     <Stack spacing={2} mt={1}>
@@ -311,33 +328,30 @@ const StudentSetupPage = () => {
                                     {...params}
                                     label="Select Guardian"
                                     fullWidth
-                                    InputProps={{
-                                        ...params.InputProps,
-                                        startAdornment: (
-                                            <>
-                                                <InputAdornment position="start">
-                                                    <SearchIcon color="action" />
-                                                </InputAdornment>
-                                                {params.InputProps.startAdornment}
-                                            </>
-                                        ),
-                                    }}
                                 />
                             )}
                         />
                         <TextField
                             select
-                            label="Select AL Batch"
+                            label="Select Batch Year"
                             value={selectedBatch}
                             onChange={(e) => setSelectedBatch(e.target.value)}
                             fullWidth
                         >
                             {batchOptions.map((year) => (
-                                <MenuItem key={year} value={year}>
-                                    {year}
-                                </MenuItem>
+                                <MenuItem key={year} value={year}>{year}</MenuItem>
                             ))}
                         </TextField>
+                        <Autocomplete
+                            multiple
+                            options={subjects}
+                            value={selectedSubjects}
+                            onChange={(_, value) => setSelectedSubjects(value)}
+                            getOptionLabel={(option) => `${option.name} (${option.code})`}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Select Subjects" placeholder="Choose subjects" />
+                            )}
+                        />
                     </Stack>
                 </DialogContent>
                 <DialogActions>

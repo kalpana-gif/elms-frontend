@@ -97,7 +97,7 @@ const AddUserPage = () => {
 
     return (
         <Box display="flex" justifyContent="center" minHeight="80vh" bgcolor="#fffff" p={2}>
-            <Card sx={{ width: '100%', maxWidth: 700, borderRadius: 3, boxShadow: 6 }}>
+            <Card sx={{ width: '100%', maxWidth: 800, borderRadius: 3, boxShadow: 6 }}>
                 <Box
                     sx={{
                         background: 'linear-gradient(to right, #3f51b5, #2196f3)',

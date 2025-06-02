@@ -1,328 +1,322 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from '../api/axiosConfig';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-    Box,
-    Typography,
-    TextField,
-    Autocomplete,
-    Button,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    Alert,
-    Grid,
-    Card,
-    CardContent,
-    Container,
-    Stack,
-    AppBar,
-    Toolbar,
-    Slide,
-    useScrollTrigger,
-    Divider,
-    Chip,
+    Grid, TextField, Autocomplete, FormControl, InputLabel,
+    Select, MenuItem, Button, Card, CardContent, Chip, Box,
+    Divider, Typography, Avatar, useMediaQuery, Accordion,
+    AccordionSummary, AccordionDetails
 } from '@mui/material';
+import { ExpandMore, Link as LinkIcon } from '@mui/icons-material';
 import { Save } from 'lucide-react';
+import { showSuccessAlert, showErrorAlert } from '../components/Alert.tsx';
+import {blue} from "@mui/material/colors";
 
-const teachers = ['Mr. Smith', 'Ms. Johnson', 'Dr. Lee', 'Mrs. Patel'];
-
-const students = [
-    { name: 'Alice', batchYear: 2024 },
-    { name: 'Bob', batchYear: 2024 },
-    { name: 'Charlie', batchYear: 2023 },
-    { name: 'David', batchYear: 2024 },
-    { name: 'Emma', batchYear: 2025 },
-    { name: 'Fiona', batchYear: 2023 },
-];
-
-const subjectTemplates = [
-    {
-        label: 'Commerce A',
-        coreSubjects: ['Accountancy', 'Business Studies (BS)'],
-        optionalSubject: 'English',
-        description: 'Focused on traditional commerce stream with strong language foundation.',
-    },
-    {
-        label: 'Commerce B',
-        coreSubjects: ['Economics', 'Accountancy'],
-        optionalSubject: 'Combined Mathematics',
-        description: 'Economics-heavy focus with analytical optional subject.',
-    },
-    {
-        label: 'Commerce C',
-        coreSubjects: ['Business Studies (BS)', 'Economics'],
-        optionalSubject: 'ICT',
-        description: 'Modern business mix with tech skills.',
-    },
-    {
-        label: 'Language Plus',
-        coreSubjects: ['Accountancy', 'Economics'],
-        optionalSubject: 'French',
-        description: 'Commerce with a foreign language focus.',
-    },
-];
-
-const coreSubjects = ['Accountancy', 'Business Studies (BS)', 'Economics'];
-const optionalSubjects = [
-    'Business Statistics',
-    'Geography',
-    'Political Science',
-    'History (History with History of Indian or European or World history)',
-    'The logic and the scientific method',
-    'English',
-    'German',
-    'French',
-    'Agricultural Sciences',
-    'Combined Mathematics',
-    'Information and Communication Technology (ICT)',
-];
-
-type Student = { name: string; batchYear: number };
-type StudentData = {
-    name: string;
-    coreSubjects: string[];
-    optionalSubject: string;
-};
-
-function HideOnScroll({ children }: { children: React.ReactElement }) {
-    const trigger = useScrollTrigger();
-    return <Slide appear={false} direction="down" in={!trigger}>{children}</Slide>;
+interface User {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    batchYear?: number;
 }
 
-function getAllCombinations(core: string[], optional: string[]) {
-    const combinations: StudentData[] = [];
-    for (let i = 0; i < core.length; i++) {
-        for (let j = i + 1; j < core.length; j++) {
-            for (let k = 0; k < optional.length; k++) {
-                combinations.push({
-                    name: '',
-                    coreSubjects: [core[i], core[j]],
-                    optionalSubject: optional[k],
-                });
-            }
-        }
-    }
-    return combinations;
+interface StudentWrapper {
+    id: string;
+    classroomId: string;
+    studentId: string;
+    student: User;
+}
+
+interface Classroom {
+    id: string;
+    name: string;
+    teacher: User;
+    students: StudentWrapper[];
+    batchYear: number;
 }
 
 const ClassRoomSetupPage: React.FC = () => {
+    const { classroomId } = useParams();
+    const navigate = useNavigate();
+    const isMobile = useMediaQuery('(max-width:600px)');
+
+    const [teachers, setTeachers] = useState<User[]>([]);
+    const [students, setStudents] = useState<User[]>([]);
+    const [batchYears, setBatchYears] = useState<number[]>([]);
+    const [allClassrooms, setAllClassrooms] = useState<Classroom[]>([]);
+
     const [className, setClassName] = useState('');
-    const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
+    const [selectedTeacher, setSelectedTeacher] = useState<User | null>(null);
     const [selectedBatchYear, setSelectedBatchYear] = useState<number | null>(null);
-    const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-    const [studentSubjectMap, setStudentSubjectMap] = useState<Record<string, StudentData>>({});
-    const [error, setError] = useState('');
+    const [selectedStudents, setSelectedStudents] = useState<User[]>([]);
 
-    const batchYears = Array.from(new Set(students.map((s) => s.batchYear)));
-    const filteredStudents = selectedBatchYear
-        ? students.filter((s) => s.batchYear === selectedBatchYear).map((s) => s.name)
-        : [];
+    const [assignedTeacherIds, setAssignedTeacherIds] = useState<string[]>([]);
+    const [assignedStudentIds, setAssignedStudentIds] = useState<string[]>([]);
 
-    const allCombinations = getAllCombinations(coreSubjects, optionalSubjects);
+    const [loading, setLoading] = useState(false);
 
-    const handleStudentCombinationChange = (student: string, index: number) => {
-        const selectedCombo = allCombinations[index];
-        setStudentSubjectMap((prev) => ({
-            ...prev,
-            [student]: {
-                name: student,
-                coreSubjects: selectedCombo.coreSubjects,
-                optionalSubject: selectedCombo.optionalSubject,
-            },
-        }));
-    };
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                const [teachersRes, batchRes, classRes] = await Promise.all([
+                    axios.get('/users?role=teacher'),
+                    axios.get('/batch-years'),
+                    axios.get('/classroom')
+                ]);
+                const classrooms: Classroom[] = classRes.data || [];
 
-    const applyTemplateToAll = (templateLabel: string) => {
-        const template = subjectTemplates.find((t) => t.label === templateLabel);
-        if (!template) return;
+                setTeachers(teachersRes.data || []);
+                setBatchYears(batchRes.data || []);
+                setAllClassrooms(classrooms);
 
-        const updatedMap: Record<string, StudentData> = {};
-        selectedStudents.forEach((student) => {
-            updatedMap[student] = {
-                name: student,
-                coreSubjects: [...template.coreSubjects],
-                optionalSubject: template.optionalSubject,
-            };
-        });
+                const teacherIds = classrooms
+                    .filter(cls => cls.id !== classroomId)
+                    .map(cls => cls.teacher.id);
+                const studentIds = classrooms
+                    .filter(cls => cls.id !== classroomId)
+                    .flatMap(cls => cls.students.map(s => s.student.id));
 
-        setStudentSubjectMap(updatedMap);
-    };
+                setAssignedTeacherIds(teacherIds);
+                setAssignedStudentIds(studentIds);
+            } catch {
+                showErrorAlert('Failed to load initial data.');
+            }
+        };
+        fetchInitialData();
+    }, [classroomId]);
 
-    const validateAndSubmit = () => {
-        if (!className || !selectedTeacher || selectedStudents.length === 0 || !selectedBatchYear) {
-            setError('Please fill in class name, teacher, batch, and students.');
+    useEffect(() => {
+        const fetchStudents = async () => {
+            if (!selectedBatchYear) {
+                setStudents([]);
+                return;
+            }
+            try {
+                const res = await axios.get(`/get-students?batchYear=${selectedBatchYear}`);
+                setStudents(res.data || []);
+            } catch {
+                showErrorAlert('Failed to load students.');
+            }
+        };
+        fetchStudents();
+    }, [selectedBatchYear]);
+
+    useEffect(() => {
+        const fetchClassroom = async () => {
+            if (!classroomId) return;
+            try {
+                const res = await axios.get(`/classroom/${classroomId}`);
+                const data: Classroom = res.data;
+                setClassName(data.name);
+                setSelectedBatchYear(data.batchYear);
+                setSelectedTeacher(data.teacher);
+                setSelectedStudents(data.students.map(s => s.student));
+            } catch {
+                showErrorAlert('Failed to load classroom details.');
+            }
+        };
+        fetchClassroom();
+    }, [classroomId]);
+
+    const validateAndSubmit = async () => {
+        if (!className || !selectedTeacher || !selectedBatchYear || selectedStudents.length === 0) {
+            showErrorAlert('Missing Fields', 'Please fill in all required fields.');
             return;
         }
 
-        for (const student of selectedStudents) {
-            const data = studentSubjectMap[student];
-            if (!data || data.coreSubjects.length < 2 || !data.optionalSubject) {
-                setError(`Student ${student} must choose at least 2 core subjects and 1 optional subject.`);
-                return;
-            }
-        }
-
-        setError('');
         const classData = {
             className,
-            teacher: selectedTeacher,
+            teacherId: selectedTeacher.id,
             batchYear: selectedBatchYear,
-            students: selectedStudents.map((name) => studentSubjectMap[name]),
+            studentIds: selectedStudents.map((s) => s.id),
         };
 
-        console.log('Classroom Created:', classData);
-        alert('Classroom created successfully!');
+        try {
+            setLoading(true);
+            if (classroomId) {
+                await axios.put(`/classroom/${classroomId}`, classData);
+            } else {
+                await axios.post('/classroom', classData);
+            }
+            await showSuccessAlert('Success', 'Classroom saved successfully!');
+            navigate(0);
+        } catch {
+            showErrorAlert('Save Failed', 'Failed to save classroom.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-            <HideOnScroll>
-                <AppBar color="default" elevation={1}>
-                    <Toolbar>
-                        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                            New Classroom Setup
-                        </Typography>
+        <Box p={isMobile ? 2 : 4}>
+            <Card sx={{ borderRadius: 4, boxShadow: 3, mb: 4 }}>
+                <Box sx={{
+                    background: 'linear-gradient(to right, #3f51b5, #2196f3)',
+                    p: 3,
+                    borderTopLeftRadius: 16,
+                    borderTopRightRadius: 16,
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                }}>
+                    <Avatar sx={{ bgcolor: 'white', color: '#2196f3' }}>
+                        <LinkIcon />
+                    </Avatar>
+                    <Box>
+                        <Typography variant="h5" fontWeight="bold">Classroom Setup</Typography>
+                        <Typography variant="body2">Assign students, teacher and batch year</Typography>
+                    </Box>
+                </Box>
+
+                <CardContent sx={{ p: 4 }}>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Class Name"
+                                value={className}
+                                onChange={(e) => setClassName(e.target.value)}
+                                fullWidth sx={{ minWidth: 300, maxWidth: 500 , }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Autocomplete
+                                options={teachers}
+                                getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
+                                value={selectedTeacher}
+                                onChange={(_, value) => setSelectedTeacher(value)}
+                                isOptionDisabled={(option) =>
+                                    assignedTeacherIds.includes(option.id) && option.id !== selectedTeacher?.id
+                                }
+                                renderInput={(params) => <TextField {...params} label="Class Teacher" />}
+                                fullWidth sx={{ minWidth: 300, maxWidth: 500 ,}}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <FormControl fullWidth sx={{ minWidth: 300, maxWidth: 500 }}>
+                                <InputLabel>Batch Year</InputLabel>
+                                <Select
+                                    value={selectedBatchYear ?? ''}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSelectedBatchYear(typeof val === 'string' ? parseInt(val) : val);
+                                        setSelectedStudents([]);
+                                    }}
+                                    label="Batch Year"
+                                >
+                                    {batchYears.map((year) => (
+                                        <MenuItem key={year} value={year}>{year}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Autocomplete
+                                multiple
+                                options={students}
+                                getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
+                                value={selectedStudents}
+                                onChange={(_, value) => setSelectedStudents(value)}
+                                isOptionDisabled={(option) =>
+                                    assignedStudentIds.includes(option.id) &&
+                                    !selectedStudents.some(s => s.id === option.id)
+                                }
+                                renderInput={(params) => <TextField {...params} label="Students" />}
+                                fullWidth sx={{ minWidth: 300, maxWidth: 500 }}
+                                disabled={!selectedBatchYear}
+                            />
+                        </Grid>
+                    </Grid>
+
+                    {selectedStudents.length > 0 && (
+                        <Box mt={4}>
+                            <Typography variant="subtitle1" fontWeight="bold">Assigned Students</Typography>
+                            <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
+                                {selectedStudents.map((s) => (
+                                    <Chip
+                                        key={s.id}
+                                        label={`${s.firstName} ${s.lastName}`}
+                                        color="primary"
+                                        variant="outlined"
+                                    />
+                                ))}
+                            </Box>
+                        </Box>
+                    )}
+
+                    <Divider sx={{ my: 4 }} />
+
+                    <Box display="flex" justifyContent="flex-end">
                         <Button
                             variant="contained"
                             color="primary"
                             startIcon={<Save />}
                             onClick={validateAndSubmit}
+                            disabled={loading}
+                            size="large"
+                            sx={{ borderRadius: 2, px: 4 }}
                         >
-                            Save
+                            {loading ? 'Saving...' : (classroomId ? 'Update Classroom' : 'Save Classroom')}
                         </Button>
-                    </Toolbar>
-                </AppBar>
-            </HideOnScroll>
-
-            <Toolbar />
-            <Stack spacing={3} mt={4}>
-                {error && <Alert severity="error">{error}</Alert>}
-
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={3}>
-                        <TextField
-                            label="Class Name"
-                            value={className}
-                            onChange={(e) => setClassName(e.target.value)}
-                            fullWidth
-                        />
-                    </Grid>
-
-                    <Grid item xs={12} md={3}>
-                        <Autocomplete
-                            options={teachers}
-                            value={selectedTeacher}
-                            onChange={(_, value) => setSelectedTeacher(value)}
-                            renderInput={(params) => <TextField {...params} label="Class Teacher" />}
-                            fullWidth
-                        />
-                    </Grid>
-
-                    <Grid item xs={12} md={3}>
-                        <FormControl fullWidth>
-                            <InputLabel>Batch Year</InputLabel>
-                            <Select
-                                value={selectedBatchYear ?? ''}
-                                onChange={(e) => {
-                                    setSelectedBatchYear(parseInt(e.target.value as string));
-                                    setSelectedStudents([]);
-                                    setStudentSubjectMap({});
-                                }}
-                                label="Batch Year"
-                            >
-                                {batchYears.map((year) => (
-                                    <MenuItem key={year} value={year}>
-                                        {year}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} md={3}>
-                        <Autocomplete
-                            multiple
-                            options={filteredStudents}
-                            value={selectedStudents}
-                            onChange={(_, value) => setSelectedStudents(value)}
-                            renderInput={(params) => <TextField {...params} label="Students" />}
-                            fullWidth
-                            disabled={!selectedBatchYear}
-                        />
-                    </Grid>
-                </Grid>
-
-                {selectedStudents.length > 0 && (
-                    <Box>
-                        <Typography variant="h6" gutterBottom>Templates</Typography>
-                        <Grid container spacing={2}>
-                            {subjectTemplates.map((template) => (
-                                <Grid item xs={12} sm={6} md={3} key={template.label}>
-                                    <Card
-                                        variant="outlined"
-                                        sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
-                                        onClick={() => applyTemplateToAll(template.label)}
-                                    >
-                                        <CardContent>
-                                            <Typography variant="subtitle1" fontWeight="bold">
-                                                {template.label}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {template.description}
-                                            </Typography>
-                                            <Divider sx={{ my: 1 }} />
-                                            <Typography variant="body2">
-                                                Core: <Chip size="small" label={template.coreSubjects.join(' + ')} />
-                                            </Typography>
-                                            <Typography variant="body2">
-                                                Optional: <Chip size="small" label={template.optionalSubject} />
-                                            </Typography>
-                                        </CardContent>
-                                    </Card>
-                                </Grid>
-                            ))}
-                        </Grid>
                     </Box>
-                )}
+                </CardContent>
+            </Card>
 
-                <Divider />
+            {/* All Classrooms List */}
+            <Card sx={{ borderRadius: 4, boxShadow: 3 }}>
+                <Box sx={{
+                    background: 'linear-gradient(to right, #3f51b5, #2196f3)',
+                    p: 3,
+                    borderTopLeftRadius: 16,
+                    borderTopRightRadius: 16,
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                }}>
+                    <Avatar sx={{ bgcolor: 'white', color: '#2196f3' }}>
+                        <LinkIcon />
+                    </Avatar>
+                    <Box>
+                        <Typography variant="h5" fontWeight="bold">All Classrooms</Typography>
+                        <Typography variant="body2">Review existing classrooms and their students</Typography>
+                    </Box>
+                </Box>
 
-                {selectedStudents.map((student) => {
-                    const current = studentSubjectMap[student] || { name: student, coreSubjects: [], optionalSubject: '' };
-                    const selectedIndex = allCombinations.findIndex(
-                        (combo) =>
-                            combo.coreSubjects.sort().join() === current.coreSubjects.sort().join() &&
-                            combo.optionalSubject === current.optionalSubject
-                    );
-
-                    return (
-                        <Card key={student} variant="outlined">
-                            <CardContent>
-                                <Typography variant="h6" gutterBottom>
-                                    {student}'s Subject Combination
-                                </Typography>
-
-                                <FormControl fullWidth>
-                                    <InputLabel>Select Subject Combination</InputLabel>
-                                    <Select
-                                        value={selectedIndex >= 0 ? selectedIndex : ''}
-                                        onChange={(e) =>
-                                            handleStudentCombinationChange(student, parseInt(e.target.value as string))
-                                        }
-                                    >
-                                        {allCombinations.map((combo, idx) => (
-                                            <MenuItem key={idx} value={idx}>
-                                                Core: {combo.coreSubjects.join(' + ')} | Optional: {combo.optionalSubject}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </CardContent>
-                        </Card>
-                    );
-                })}
-            </Stack>
-        </Container>
+                <CardContent>
+                    <Grid container spacing={1.5}>
+                        {allClassrooms.map((cls) => (
+                            <Grid item xs={10} key={cls.id}>
+                                <Accordion elevation={4} sx={{ borderRadius: 2  }}>
+                                    <AccordionSummary expandIcon={<ExpandMore />}>
+                                        <Box>
+                                            <Typography variant="h6">{cls.name}</Typography>
+                                            <Typography variant="body2" color="textSecondary">
+                                                Batch Year: {cls.batchYear} | Teacher: {cls.teacher.firstName} {cls.teacher.lastName} | Students: {cls.students.length}
+                                            </Typography>
+                                        </Box>
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <Typography variant="subtitle2" gutterBottom>Student List</Typography>
+                                        <Box display="flex" flexWrap="wrap" gap={1}>
+                                            {cls.students.map((s) => (
+                                                <Chip
+                                                    key={s.student.id}
+                                                    label={`${s.student.firstName} ${s.student.lastName}`}
+                                                    color="secondary"
+                                                    variant="outlined"
+                                                />
+                                            ))}
+                                        </Box>
+                                    </AccordionDetails>
+                                </Accordion>
+                            </Grid>
+                        ))}
+                    </Grid>
+                </CardContent>
+            </Card>
+        </Box>
     );
 };
 

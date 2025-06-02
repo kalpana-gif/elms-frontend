@@ -5,8 +5,9 @@ import SchoolIcon from "@mui/icons-material/School";
 import GroupIcon from "@mui/icons-material/Group";
 import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
-import RoomPreferencesIcon from '@mui/icons-material/RoomPreferences';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { lazy } from "react";
+import {HomeIcon} from "lucide-react";
 
 export type RouteItem = {
     text: string;
@@ -47,6 +48,13 @@ export const routeConfig: RouteItem[] = [
         ],
     },
     {
+        text: "Manage Subject",
+        icon: <MenuBookIcon />,
+        component: lazy(() => import("../pages/ManageSubjectPage.tsx")),
+        path: "/manage-subject",
+        roles: ["admin"],
+    },
+    {
         text: "Users",
         icon: <GroupIcon />,
         roles: ["admin"],
@@ -77,7 +85,7 @@ export const routeConfig: RouteItem[] = [
     },
     {
         text: "Class Room Setup",
-        icon: <RoomPreferencesIcon />,
+        icon: <HomeIcon />,
         component: lazy(() => import("../pages/ClassRoomSetupPage.tsx")),
         path: "/class-room",
         roles: ["admin"],
