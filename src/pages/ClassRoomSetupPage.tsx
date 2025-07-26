@@ -8,9 +8,10 @@ import {
     AccordionSummary, AccordionDetails
 } from '@mui/material';
 import { ExpandMore, Link as LinkIcon } from '@mui/icons-material';
-import { Save } from 'lucide-react';
+import {HomeIcon, ListIcon, Save} from 'lucide-react';
 import { showSuccessAlert, showErrorAlert } from '../components/Alert.tsx';
-import {blue} from "@mui/material/colors";
+import { Search } from '@mui/icons-material';
+import { InputAdornment } from '@mui/material';
 
 interface User {
     id: string;
@@ -53,8 +54,8 @@ const ClassRoomSetupPage: React.FC = () => {
 
     const [assignedTeacherIds, setAssignedTeacherIds] = useState<string[]>([]);
     const [assignedStudentIds, setAssignedStudentIds] = useState<string[]>([]);
-
     const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -64,6 +65,7 @@ const ClassRoomSetupPage: React.FC = () => {
                     axios.get('/batch-years'),
                     axios.get('/classroom')
                 ]);
+
                 const classrooms: Classroom[] = classRes.data || [];
 
                 setTeachers(teachersRes.data || []);
@@ -148,8 +150,13 @@ const ClassRoomSetupPage: React.FC = () => {
         }
     };
 
+    const filteredClassrooms = allClassrooms.filter((cls) =>
+        cls.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <Box p={isMobile ? 2 : 4}>
+            {/* Classroom Form */}
             <Card sx={{ borderRadius: 4, boxShadow: 3, mb: 4 }}>
                 <Box sx={{
                     background: 'linear-gradient(to right, #3f51b5, #2196f3)',
@@ -162,7 +169,7 @@ const ClassRoomSetupPage: React.FC = () => {
                     gap: 2,
                 }}>
                     <Avatar sx={{ bgcolor: 'white', color: '#2196f3' }}>
-                        <LinkIcon />
+                        <HomeIcon />
                     </Avatar>
                     <Box>
                         <Typography variant="h5" fontWeight="bold">Classroom Setup</Typography>
@@ -177,7 +184,7 @@ const ClassRoomSetupPage: React.FC = () => {
                                 label="Class Name"
                                 value={className}
                                 onChange={(e) => setClassName(e.target.value)}
-                                fullWidth sx={{ minWidth: 300, maxWidth: 500 , }}
+                                fullWidth sx={{ minWidth: 300, maxWidth: 500 }}
                             />
                         </Grid>
                         <Grid item xs={12} md={6}>
@@ -190,7 +197,7 @@ const ClassRoomSetupPage: React.FC = () => {
                                     assignedTeacherIds.includes(option.id) && option.id !== selectedTeacher?.id
                                 }
                                 renderInput={(params) => <TextField {...params} label="Class Teacher" />}
-                                fullWidth sx={{ minWidth: 300, maxWidth: 500 ,}}
+                                fullWidth sx={{ minWidth: 300, maxWidth: 500 }}
                             />
                         </Grid>
                         <Grid item xs={12} md={6}>
@@ -265,30 +272,63 @@ const ClassRoomSetupPage: React.FC = () => {
 
             {/* All Classrooms List */}
             <Card sx={{ borderRadius: 4, boxShadow: 3 }}>
-                <Box sx={{
-                    background: 'linear-gradient(to right, #3f51b5, #2196f3)',
-                    p: 3,
-                    borderTopLeftRadius: 16,
-                    borderTopRightRadius: 16,
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                }}>
-                    <Avatar sx={{ bgcolor: 'white', color: '#2196f3' }}>
-                        <LinkIcon />
-                    </Avatar>
-                    <Box>
-                        <Typography variant="h5" fontWeight="bold">All Classrooms</Typography>
-                        <Typography variant="body2">Review existing classrooms and their students</Typography>
+                <Box
+                    sx={{
+                        background: 'linear-gradient(to right, #3f51b5, #2196f3)',
+                        px: 3,
+                        py: 2,
+                        borderTopLeftRadius: 16,
+                        borderTopRightRadius: 16,
+                        color: 'white',
+                    }}
+                >
+                    <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        flexWrap="wrap"
+                        gap={2}
+                    >
+                        <Box display="flex" alignItems="center" gap={2}>
+                            <Avatar sx={{ bgcolor: 'white', color: '#2196f3' }}>
+                                <ListIcon />
+                            </Avatar>
+                            <Box>
+                                <Typography variant="h5" fontWeight="bold">All Classrooms</Typography>
+                                <Typography variant="body2">Review existing classrooms and their students</Typography>
+                            </Box>
+                        </Box>
                     </Box>
                 </Box>
 
                 <CardContent>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                        <TextField
+                            label="Search by Class Name"
+                            variant="outlined"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            sx={{
+                                backgroundColor: 'white',
+                                borderRadius: 1,
+                                width: isMobile ? '100%' : 300,
+                                mt: isMobile ? 2 : 0,
+                            }}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search />
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                    </Box>
+
                     <Grid container spacing={1.5}>
-                        {allClassrooms.map((cls) => (
-                            <Grid item xs={10} key={cls.id}>
-                                <Accordion elevation={4} sx={{ borderRadius: 2  }}>
+                        {filteredClassrooms.map((cls) => (
+                            <Grid item xs={12} key={cls.id}>
+                                <Accordion elevation={4} sx={{ borderRadius: 2 }}>
                                     <AccordionSummary expandIcon={<ExpandMore />}>
                                         <Box>
                                             <Typography variant="h6">{cls.name}</Typography>

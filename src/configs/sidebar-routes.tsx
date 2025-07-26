@@ -6,6 +6,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import SportsScoreIcon from '@mui/icons-material/SportsScore';
 import { lazy } from "react";
 import {HomeIcon} from "lucide-react";
 
@@ -89,6 +90,14 @@ export const routeConfig: RouteItem[] = [
         component: lazy(() => import("../pages/ClassRoomSetupPage.tsx")),
         path: "/class-room",
         roles: ["admin"],
+    },
+
+    {
+        text: "Marks Manager",
+        icon: <SportsScoreIcon />,
+        component: lazy(() => import("../pages/MarkEntryPage.tsx")),
+        path: "/marks-manager",
+        roles: ["admin", "teacher"],
     },
     {
         text: "Settings",

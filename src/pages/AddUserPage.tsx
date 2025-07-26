@@ -132,7 +132,7 @@ const AddUserPage = () => {
                             <Grid container spacing={2}>
                                 <Grid item xs={12} sm={6} md={7}>
                                     <TextField
-                                        fullWidth
+                                        fullWidth sx={{ minWidth: 300, maxWidth: 500 }}
                                         label="First Name"
                                         variant="outlined"
                                         value={user.firstName}
@@ -141,7 +141,7 @@ const AddUserPage = () => {
                                 </Grid>
                                 <Grid item xs={12} sm={6} md={5}>
                                     <TextField
-                                        fullWidth
+                                        fullWidth sx={{ minWidth: 300, maxWidth: 500 }}
                                         label="Last Name"
                                         variant="outlined"
                                         value={user.lastName}

@@ -306,7 +306,22 @@ const StudentSetupPage = () => {
 
             {/* Dialog */}
             <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-                <DialogTitle>Assign Guardian and Subjects</DialogTitle>
+                <DialogTitle sx={{ p: 0 }}>
+                    <Box
+                        sx={{
+                            background: 'linear-gradient(to right, #3f51b5, #2196f3)',
+                            p: 3,
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2,
+                        }}
+                    >
+                        <Typography variant="h6" fontWeight="bold">
+                            Assign Guardian and Subjects
+                        </Typography>
+                    </Box>
+                </DialogTitle>
                 <Divider />
                 <DialogContent>
                     <Stack spacing={2} mt={1}>

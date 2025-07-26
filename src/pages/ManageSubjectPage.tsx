@@ -149,7 +149,7 @@ const ManageSubjectPage = () => {
                         <Grid container spacing={4}>
                             <Grid item xs={12} sm={6}>
                                 <TextField
-                                    fullWidth
+                                    fullWidth sx={{ minWidth: 300, maxWidth: 500 }}
                                     label="Subject Name"
                                     placeholder="e.g. Mathematics"
                                     value={subject.name}
@@ -159,7 +159,7 @@ const ManageSubjectPage = () => {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <TextField
-                                    fullWidth
+                                    fullWidth sx={{ minWidth: 300, maxWidth: 500 }}
                                     label="Subject Code"
                                     placeholder="e.g. MATH101"
                                     value={subject.code}

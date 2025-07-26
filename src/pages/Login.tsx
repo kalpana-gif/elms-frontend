@@ -26,6 +26,10 @@ export default function Login() {
             });
 
             const { uid, role, email: returnedEmail } = response.data;
+            if (role === 'teacher') {
+                localStorage.setItem('teacherId', uid);
+                localStorage.setItem('teacherEmail', returnedEmail); // optional
+            }
 
             login(uid, role, returnedEmail);
 
