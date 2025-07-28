@@ -567,27 +567,35 @@ const MarkEntryPage = () => {
                 }}
             >
                 {loading && <LinearProgress sx={{ position: 'absolute', top: 0, width: '100%' }} />}
+
                 <Box
-                    sx={{
-                        background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-                        p: 2,
-                        borderTopLeftRadius: 4,
-                        borderTopRightRadius: 4,
-                        color: 'white',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Typography variant={isMobile ? 'h6' : 'h5'} fontWeight="bold">
-                        Student Mark Entry
-                    </Typography>
-                    <Tooltip title="Reset Form">
-                        <IconButton color="inherit" onClick={handleReset} disabled={unauthorizedDialogOpen || loading}>
-                            <RefreshIcon />
-                        </IconButton>
-                    </Tooltip>
-                </Box>
+                sx={{
+                    background: 'linear-gradient(to right, #3f51b5, #2196f3)',
+                    p: 3,
+                    borderTopLeftRadius: 16,
+                    borderTopRightRadius: 16,
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between', // Push items to ends
+                }}
+            >
+                {/* Left Side: Title */}
+                <Typography variant={isMobile ? 'h6' : 'h5'} fontWeight="bold">
+                    Student Mark Entry
+                </Typography>
+
+                {/* Right Side: Refresh Button */}
+                <Tooltip title="Reset Form">
+                    <IconButton
+                        color="inherit"
+                        onClick={handleReset}
+                        disabled={unauthorizedDialogOpen || loading}
+                    >
+                        <RefreshIcon />
+                    </IconButton>
+                </Tooltip>
+            </Box>
 
                 <CardContent sx={{ p: isMobile ? 2 : 3 }}>
                     {errorMessage && (
