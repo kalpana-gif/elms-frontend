@@ -7,6 +7,9 @@ import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SportsScoreIcon from '@mui/icons-material/SportsScore';
+import GradeIcon from '@mui/icons-material/Grade';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+
 import { lazy } from "react";
 import {HomeIcon} from "lucide-react";
 
@@ -23,7 +26,7 @@ export const routeConfig: RouteItem[] = [
     {
         text: "Dashboard",
         icon: <DashboardIcon />,
-        component: lazy(() => import("../pages/StudentPage.tsx")),
+        component: lazy(() => import("../pages/DashboardPage.tsx")),
         path: "/dashboard",
         roles: ["admin", "teacher", "student"],
     },
@@ -105,5 +108,19 @@ export const routeConfig: RouteItem[] = [
         component: lazy(() => import("../pages/StudentPage")),
         path: "/settings",
         roles: ["admin", "teacher"],
+    },
+    {
+        text: "Marks",
+        icon: <GradeIcon />,
+        component: lazy(() => import("../pages/MarkListViewPage")),
+        path: "/view-mark",
+        roles: ["admin", "teacher"],
+    },
+    {
+        text: "Notifications",
+        icon: <NotificationsIcon />,
+        component: lazy(() => import("../pages/NotificationPage.tsx")),
+        path: "/notifications",
+        roles: ["admin", "teacher","student"],
     },
 ];
