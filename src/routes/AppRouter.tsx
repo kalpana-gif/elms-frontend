@@ -51,7 +51,7 @@ const AppRouter = () => (
             path="/student"
             element={
                 <ProtectedRoute allowedRoles={['student']}>
-                    <StudentPage />
+                    <Dashboard />
                 </ProtectedRoute>
             }
         />
