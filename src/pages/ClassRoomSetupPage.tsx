@@ -57,67 +57,76 @@ const ClassRoomSetupPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    const [refreshTrigger, setRefreshTrigger] = useState(0); // <-- will change to trigger re-fetch
+
+    // Fetch teachers, batch years, classrooms
+    const fetchInitialData = async () => {
+        try {
+            const [teachersRes, batchRes, classRes] = await Promise.all([
+                axios.get('/users?role=teacher'),
+                axios.get('/batch-years'),
+                axios.get('/classroom')
+            ]);
+
+            const classrooms: Classroom[] = classRes.data || [];
+
+            setTeachers(teachersRes.data || []);
+            setBatchYears(batchRes.data || []);
+            setAllClassrooms(classrooms);
+
+            const teacherIds = classrooms
+                .filter(cls => cls.id !== classroomId)
+                .map(cls => cls.teacher.id);
+            const studentIds = classrooms
+                .filter(cls => cls.id !== classroomId)
+                .flatMap(cls => cls.students.map(s => s.student.id));
+
+            setAssignedTeacherIds(teacherIds);
+            setAssignedStudentIds(studentIds);
+        } catch {
+            showErrorAlert('Failed to load initial data.');
+        }
+    };
+
+    // Fetch students for selected batch year
+    const fetchStudents = async () => {
+        if (!selectedBatchYear) {
+            setStudents([]);
+            return;
+        }
+        try {
+            const res = await axios.get(`/get-students?batchYear=${selectedBatchYear}`);
+            setStudents(res.data || []);
+        } catch {
+            showErrorAlert('Failed to load students.');
+        }
+    };
+
+    // Fetch classroom details for edit
+    const fetchClassroom = async () => {
+        if (!classroomId) return;
+        try {
+            const res = await axios.get(`/classroom/${classroomId}`);
+            const data: Classroom = res.data;
+            setClassName(data.name);
+            setSelectedBatchYear(data.batchYear);
+            setSelectedTeacher(data.teacher);
+            setSelectedStudents(data.students.map(s => s.student));
+        } catch {
+            showErrorAlert('Failed to load classroom details.');
+        }
+    };
+
+    // Effects
     useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                const [teachersRes, batchRes, classRes] = await Promise.all([
-                    axios.get('/users?role=teacher'),
-                    axios.get('/batch-years'),
-                    axios.get('/classroom')
-                ]);
-
-                const classrooms: Classroom[] = classRes.data || [];
-
-                setTeachers(teachersRes.data || []);
-                setBatchYears(batchRes.data || []);
-                setAllClassrooms(classrooms);
-
-                const teacherIds = classrooms
-                    .filter(cls => cls.id !== classroomId)
-                    .map(cls => cls.teacher.id);
-                const studentIds = classrooms
-                    .filter(cls => cls.id !== classroomId)
-                    .flatMap(cls => cls.students.map(s => s.student.id));
-
-                setAssignedTeacherIds(teacherIds);
-                setAssignedStudentIds(studentIds);
-            } catch {
-                showErrorAlert('Failed to load initial data.');
-            }
-        };
         fetchInitialData();
-    }, [classroomId]);
+    }, [classroomId, refreshTrigger]); // <— also re-run after save
 
     useEffect(() => {
-        const fetchStudents = async () => {
-            if (!selectedBatchYear) {
-                setStudents([]);
-                return;
-            }
-            try {
-                const res = await axios.get(`/get-students?batchYear=${selectedBatchYear}`);
-                setStudents(res.data || []);
-            } catch {
-                showErrorAlert('Failed to load students.');
-            }
-        };
         fetchStudents();
-    }, [selectedBatchYear]);
+    }, [selectedBatchYear, refreshTrigger]); // <— ensures updated student list
 
     useEffect(() => {
-        const fetchClassroom = async () => {
-            if (!classroomId) return;
-            try {
-                const res = await axios.get(`/classroom/${classroomId}`);
-                const data: Classroom = res.data;
-                setClassName(data.name);
-                setSelectedBatchYear(data.batchYear);
-                setSelectedTeacher(data.teacher);
-                setSelectedStudents(data.students.map(s => s.student));
-            } catch {
-                showErrorAlert('Failed to load classroom details.');
-            }
-        };
         fetchClassroom();
     }, [classroomId]);
 
@@ -142,6 +151,9 @@ const ClassRoomSetupPage: React.FC = () => {
                 await axios.post('/classroom', classData);
             }
             await showSuccessAlert('Success', 'Classroom saved successfully!');
+
+            // Trigger re-fetch
+            setRefreshTrigger(prev => prev + 1);
         } catch {
             showErrorAlert('Save Failed', 'Failed to save classroom.');
         } finally {
