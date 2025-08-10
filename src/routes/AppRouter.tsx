@@ -1,10 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Dashboard from '../layouts/dashboard/Dashboard.tsx';
-import AdminPage from '../pages/AdminPage';
-import TeacherPage from '../pages/TeacherPage';
-import StudentPage from '../pages/StudentPage';
-import ParentPage from '../pages/ParentPage';
 import Unauthorized from '../pages/Unauthorized';
 import ProtectedRoute from './ProtectedRoute.tsx';
 
@@ -59,7 +55,7 @@ const AppRouter = () => (
             path="/parent"
             element={
                 <ProtectedRoute allowedRoles={['parent']}>
-                    <ParentPage />
+                    <Dashboard />
                 </ProtectedRoute>
             }
         />

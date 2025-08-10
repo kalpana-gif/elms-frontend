@@ -556,7 +556,7 @@ const MarkEntryPage = () => {
     }, [isBulkSubmit, state.entries, selectedSubject, examType, selectedClass, students, subjects, classrooms]);
 
     return (
-        <Box p={isMobile ? 2 : 3} maxWidth="1600px" mx="auto">
+        <Box p={isMobile ? 2 : 3} maxWidth="2XL" mx="auto">
             <Card
                 sx={{
                     borderRadius: 4,

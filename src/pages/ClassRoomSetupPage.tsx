@@ -142,7 +142,6 @@ const ClassRoomSetupPage: React.FC = () => {
                 await axios.post('/classroom', classData);
             }
             await showSuccessAlert('Success', 'Classroom saved successfully!');
-            navigate(0);
         } catch {
             showErrorAlert('Save Failed', 'Failed to save classroom.');
         } finally {

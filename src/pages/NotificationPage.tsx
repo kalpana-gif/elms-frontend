@@ -186,7 +186,7 @@ const NotificationPage: React.FC = () => {
     };
 
     return (
-        <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Container maxWidth="2xl" sx={{ py: 4 }}>
             {/* Enhanced Header */}
             <Paper
                 elevation={0}
